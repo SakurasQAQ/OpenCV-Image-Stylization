@@ -1,0 +1,6 @@
+Flask
+Pillow
+opencv-python
+torch
+numpy
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git

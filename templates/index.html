@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Click Position</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</head>
+<body>
+    <h1>Upload an Image</h1>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*" required>
+        <input type="submit" value="Upload">
+    </form>
+
+    {% if image_url %}
+        <h2>Selected Image:</h2>
+        
+        <div class="image-container" id="image-container">
+            <img id="uploaded-image" src="{{ image_url }}" alt="Image">
+            <div id="marker-container"></div>  <!-- mark dots -->
+        </div>
+        <p id="coords">Click on the picture to select the point prompt</p>
+
+        <h2>标注模式</h2>
+        <button onclick="setMode('foreground')">标注前景</button>
+        <button onclick="setMode('background')">标注背景</button>
+
+        <p id="notice" style="color: red; font-weight: bold;"></p>
+
+        <button onclick="clearMarkers()">清除所有标记</button>
+        <button onclick="submitPoints()">提交标注结果</button>
+
+    {% endif %}
+
+    <h3>分割结果：</h3>
+    <img id="resultImage" src="" alt="分割结果将显示在这里" style="max-width: 100%; border: 1px solid #ccc;">
+
+</body>
+
+
+
+
+</html>

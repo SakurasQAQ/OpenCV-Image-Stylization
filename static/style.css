@@ -1,0 +1,42 @@
+
+
+.image-container {
+    width: 500px;
+    position: relative;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+}
+
+.image-container img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+#marker-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;  /* 必须和图片一样大 */
+    height: 100%;
+    pointer-events: none;
+}
+
+
+.marker {
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+.marker.background {
+    background-color: blue;
+}
+.marker.foreground {
+    background-color: red;
+}
+
+

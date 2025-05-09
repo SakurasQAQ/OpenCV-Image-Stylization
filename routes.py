@@ -104,11 +104,12 @@ def getpoints():
 @app_bp.route('/confirm_result', methods=['POST'])
 def confirm_result():
     data = request.get_json()
-    selected_result = data.get("selected_result")
+    fg_result = data.get("selected_foreground")
+    bg_result = data.get("selected_background")
     filename = data.get("filename")
 
-    if not selected_result or not filename:
+    if not fg_result or not bg_result or not filename:
         return jsonify({"message": "Missing required data"}), 400
 
-    print(f"User confirmed: {selected_result} for {filename}")
-    return jsonify({"message": f"Selected result received: {os.path.basename(selected_result)}"})
+    print(f"User confirmed: {fg_result} (foreground), {bg_result} (background) for {filename}")
+    return jsonify({"message": f"Confirmed foreground: {os.path.basename(fg_result)}, background: {os.path.basename(bg_result)}"})

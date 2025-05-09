@@ -167,28 +167,54 @@ document.addEventListener("DOMContentLoaded", function () {
             progress.style.display = "none";
             progressBar.value = 0;
 
-            data.result.forEach((path, index) => {
+            for (let i = 0; i < data.result.length; i += 2) {
                 const wrapper = document.createElement("div");
-                wrapper.classList.add("result-item");
-
+                wrapper.classList.add("result-row");
+                wrapper.style.display = "flex";
+                wrapper.style.gap = "10px";
+                wrapper.style.marginBottom = "20px";
+            
                 const label = document.createElement("div");
-                label.textContent = "Result " + (index + 1);
+                label.textContent = `Result ${Math.floor(i / 2) + 1}`;
                 label.style.fontWeight = "bold";
                 label.style.marginBottom = "5px";
-
-                const img = document.createElement("img");
-                img.src = path + "?t=" + Date.now();
-                img.alt = "Result " + (index + 1);
-                img.style.maxWidth = "100%";
-                img.style.border = "1px solid #ccc";
-                img.style.width = "400px";
-                img.style.height = "auto";
-                img.style.objectFit = "contain";
-
-                wrapper.appendChild(label);
-                wrapper.appendChild(img);
+                label.style.width = "100%";
+                label.style.textAlign = "center";
+            
+                const container = document.createElement("div");
+                container.style.display = "flex";
+                container.style.flexDirection = "column";
+                container.style.alignItems = "center";
+                container.style.width = "100%";
+            
+                // 前景图
+                const img1 = document.createElement("img");
+                img1.src = data.result[i] + "?t=" + Date.now();
+                img1.alt = `Mask ${i}`;
+                img1.style.maxWidth = "100%";
+                img1.style.border = "1px solid #ccc";
+                img1.style.width = "400px";
+                img1.style.height = "auto";
+                img1.style.objectFit = "contain";
+            
+                // 反选图
+                const img2 = document.createElement("img");
+                img2.src = data.result[i + 1] + "?t=" + Date.now();
+                img2.alt = `Inverted ${i}`;
+                img2.style.maxWidth = "100%";
+                img2.style.border = "1px solid #ccc";
+                img2.style.width = "400px";
+                img2.style.height = "auto";
+                img2.style.objectFit = "contain";
+            
+                container.appendChild(label);
+                wrapper.appendChild(img1);
+                wrapper.appendChild(img2);
+            
                 container.appendChild(wrapper);
-            });
+                document.getElementById("resultContainer").appendChild(container);
+            }
+            
             document.getElementById("selection-controls").style.display = "block";
         })
         .catch(err => {
@@ -203,16 +229,19 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Please select one result before confirming.");
             return;
         }
-
+    
         const selectedIndex = selected.value;
-        const selectedPath = `static/uploads/result_${currentFilename.split('.')[0]}_${selectedIndex}.png`;
-
+        const baseName = `result_${currentFilename.split('.')[0]}_${selectedIndex}`;
+        const foregroundPath = `static/uploads/${baseName}.png`;
+        const backgroundPath = `static/uploads/${baseName}_inverted.png`;
+    
         fetch("/confirm_result", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 filename: currentFilename,
-                selected_result: selectedPath
+                selected_foreground: foregroundPath,
+                selected_background: backgroundPath
             })
         })
         .then(res => res.json())

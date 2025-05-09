@@ -141,4 +141,13 @@ class SAMSegmentor:
             Image.fromarray(rgba).save(save_path)
             saved_paths.append(save_path)
 
+
+            # 反选部分
+            inverted = 1 - resized_mask  
+            alpha_inv = (inverted * 255).astype(np.uint8)
+            rgba_inv = np.dstack((self.original_image, alpha_inv))
+            inv_path = os.path.join(base_path, f"{prefix}_{i}_inverted.png")
+            Image.fromarray(rgba_inv).save(inv_path)
+            saved_paths.append(inv_path)
+
         return saved_paths

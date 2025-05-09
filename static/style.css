@@ -139,3 +139,23 @@ form input[type="submit"],
     flex-direction: column;
     gap: 20px;
 }
+
+
+.selection-group {
+    margin-top: 15px;
+    padding: 10px;
+    border-top: 1px solid #444;
+}
+.selection-group label {
+    display: block;
+    margin: 5px 0;
+}
+.selection-group button {
+    margin-top: 10px;
+    background-color: var(--color-bt1);
+    border: none;
+    padding: 8px 12px;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}

@@ -26,6 +26,8 @@
             <button id="foreground-btn" onclick="setMode('foreground')">Mark Foreground</button>
             <button id="background-btn" onclick="setMode('background')">Mark Background</button>
 
+            <button id="box-btn" onclick="setMode('box')">Select box</button>
+
             <button onclick="clearMarkers()" class="full-width">Clear All Marks</button>
             <button onclick="submitPoints()" class="full-width">Submit Annotations</button>
 
@@ -33,6 +35,17 @@
                 <progress id="progress-bar" max="100" value="0" style="width:100%;"></progress>
                 <p style="text-align:center;">Submitting...</p>
             </div>
+
+
+            <div class="selection-group full-width  " id="selection-controls" style="display: none;">
+                <p>Select Best Result:</p>
+                <label><input type="radio" name="resultChoice" value="0"> Option 1</label>
+                <label><input type="radio" name="resultChoice" value="1"> Option 2</label>
+                <label><input type="radio" name="resultChoice" value="2"> Option 3</label>
+                <button onclick="confirmSelection()">Confirm Selection</button>
+            </div>
+            <input type="hidden" id="img-width" value="{{ width }}">
+            <input type="hidden" id="img-height" value="{{ height }}">
         </div>
         {% endif %}
     </div>

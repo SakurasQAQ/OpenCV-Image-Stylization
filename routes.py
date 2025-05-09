@@ -41,23 +41,50 @@ def getpoints():
     data = request.get_json()
     fg_dict = data.get('foreground', [])
     bg_dict = data.get('background', [])
+    box_dict = data.get('box', None)
     filename = data.get('filename', None)
+    orig_size = data.get('original_size', None)
 
     if not filename:
-        return jsonify({"message": "缺少 filename 参数"}), 400
+        return jsonify({"message": "filename parameters missing"}), 400
 
     image_path = os.path.join('static/uploads', filename)
     if not os.path.exists(image_path):
-        return jsonify({"message": f"找不到图像文件：{filename}"}), 404
+        return jsonify({"message": f"Image file not found: {filename}"}), 404
 
-    fg = [[pt["x"], pt["y"]] for pt in fg_dict]
-    bg = [[pt["x"], pt["y"]] for pt in bg_dict]
+    # 坐标缩放函数
+    def scale_point(pt, orig_w, orig_h, tgt_w, tgt_h):
+        x = int(pt[0] * tgt_w / orig_w)
+        y = int(pt[1] * tgt_h / orig_h)
+        return [x, y]
+
+    # 原始尺寸
+    orig_w = orig_size.get("width") if orig_size else 1024
+    orig_h = orig_size.get("height") if orig_size else 1024
+    tgt_w, tgt_h = 1024, 1024
+
+    # 点坐标缩放
+    fg = [scale_point([pt["x"], pt["y"]], orig_w, orig_h, tgt_w, tgt_h) for pt in fg_dict]
+    bg = [scale_point([pt["x"], pt["y"]], orig_w, orig_h, tgt_w, tgt_h) for pt in bg_dict]
     points = fg + bg
     labels = [1] * len(fg) + [0] * len(bg)
 
-    segmentor.load_image(image_path)
-    masks, scores = segmentor.segment_all_masks(points, labels)
+    # 框坐标缩放
+    box_np = None
+    if box_dict and len(box_dict) == 2:
+        x0, y0 = scale_point([box_dict[0]["x"], box_dict[0]["y"]], orig_w, orig_h, tgt_w, tgt_h)
+        x1, y1 = scale_point([box_dict[1]["x"], box_dict[1]["y"]], orig_w, orig_h, tgt_w, tgt_h)
+        box_np = [min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)]
 
+    segmentor.load_image(image_path)
+
+    # 调用组合接口
+    if box_np:
+        masks, scores = segmentor.segment_with_box_and_points(box=box_np, points=points, labels=labels)
+        mode_used = "box+point" if points else "box-only"
+    else:
+        masks, scores = segmentor.segment_all_masks(points, labels)
+        mode_used = "point-only"
 
     name_without_ext = os.path.splitext(filename)[0]
     saved_paths = segmentor.export_multiple_masks(
@@ -67,10 +94,21 @@ def getpoints():
     )
 
     return jsonify({
-        "message": "Segmentation completed, generating %d candidate results" % len(saved_paths),
+        "message": f"Segmentation completed using [{mode_used}], {len(saved_paths)} results generated.",
         "result": saved_paths,
-        "points_used": {
-            "foreground": fg,
-            "background": bg
-        }
+        "mode": mode_used
     })
+
+
+
+@app_bp.route('/confirm_result', methods=['POST'])
+def confirm_result():
+    data = request.get_json()
+    selected_result = data.get("selected_result")
+    filename = data.get("filename")
+
+    if not selected_result or not filename:
+        return jsonify({"message": "Missing required data"}), 400
+
+    print(f"User confirmed: {selected_result} for {filename}")
+    return jsonify({"message": f"Selected result received: {os.path.basename(selected_result)}"})

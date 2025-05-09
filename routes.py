@@ -7,7 +7,7 @@ from PIL import Image
 # function_ upload Images
 app_bp = Blueprint('app', __name__)
 
-segmentor = SAMSegmentor()  # 全局模型实例
+segmentor = SAMSegmentor()  
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
@@ -26,26 +26,14 @@ def upload_file():
             save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
             file.save(save_path)
 
-            # 使用 Pillow 打开图片并获取尺寸
             image = Image.open(save_path)
-            width, height = image.size  # width = 宽，height = 高
+            width, height = image.size 
 
             image_url = url_for('static', filename='uploads/' + filename)
 
     return render_template('index.html', image_url=image_url, width=width, height=height)
 
 
-# @app_bp.route('/getpoints', methods=['POST'])
-# def getpoints():
-#     data = request.get_json()
-#     fg = data.get('foreground', [])
-#     bg = data.get('background', [])
-
-#     # 打印或保存
-#     print("收到前景点:", fg)
-#     print("收到背景点:", bg)
-
-#     return jsonify({"message": "坐标已接收，数量：前景 %d 个，背景 %d 个" % (len(fg), len(bg))})
 
 
 @app_bp.route('/getpoints', methods=['POST'])
@@ -62,17 +50,15 @@ def getpoints():
     if not os.path.exists(image_path):
         return jsonify({"message": f"找不到图像文件：{filename}"}), 404
 
-    # 解析前景和背景点
     fg = [[pt["x"], pt["y"]] for pt in fg_dict]
     bg = [[pt["x"], pt["y"]] for pt in bg_dict]
     points = fg + bg
     labels = [1] * len(fg) + [0] * len(bg)
 
-    # 执行 SAM 分割（多候选）
     segmentor.load_image(image_path)
     masks, scores = segmentor.segment_all_masks(points, labels)
 
-    # 导出多个候选分割结果图像
+
     name_without_ext = os.path.splitext(filename)[0]
     saved_paths = segmentor.export_multiple_masks(
         masks,
@@ -81,7 +67,7 @@ def getpoints():
     )
 
     return jsonify({
-        "message": "分割完成，共生成 %d 个候选 mask" % len(saved_paths),
+        "message": "Segmentation completed, generating %d candidate results" % len(saved_paths),
         "result": saved_paths,
         "points_used": {
             "foreground": fg,

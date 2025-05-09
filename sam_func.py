@@ -1,4 +1,5 @@
 # sam_func.py
+# SAM image segmentation method
 
 import torch
 import numpy as np

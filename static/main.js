@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         markerContainer.innerHTML = '';
         foregroundPoints = [];
         backgroundPoints = [];
-        coords.textContent = '??';
+        coords.textContent = 'Split Completed';
         alert("Clean all dots");
 
         setMode('foreground');

@@ -78,7 +78,6 @@ class SAMSegmentor:
 
     def segment_all_masks(self, points, labels, multimask=True):
         """
-        返回所有候选掩码
         :param points: [[x1, y1], [x2, y2], ...]
         :param labels: [1, 0, ...]
         :return: masks, scores

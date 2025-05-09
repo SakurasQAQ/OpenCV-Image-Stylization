@@ -1,6 +1,6 @@
 
 
-.image-container {
+/* .image-container {
     width: 500px;
     position: relative;
     border: 1px solid #ccc;
@@ -17,7 +17,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;  /* 必须和图片一样大 */
+    width: 100%;  
     height: 100%;
     pointer-events: none;
 }
@@ -37,6 +37,98 @@
 }
 .marker.foreground {
     background-color: red;
+} */
+
+
+
+body {
+    background-color: #1e1e2f;
+    color: #d3d3d3;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
 }
-
-
+.container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+.card {
+    background-color: #2a2a40;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.sidebar {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.main-content {
+    flex: 7;
+}
+.file-input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.file-input-wrapper input[type="file"] {
+    display: none;
+}
+.file-input-wrapper label,
+form input[type="submit"],
+.controls button {
+    background-color: #ffaa00;
+    border: none;
+    padding: 10px 15px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+    
+}
+.file-input-wrapper label {
+    width: auto;
+}
+.image-container {
+    position: relative;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+    max-width: 100%;
+}
+.image-container img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+#marker-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+.marker {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+.marker.background { background-color: blue; }
+.marker.foreground { background-color: red; }
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+.controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+}

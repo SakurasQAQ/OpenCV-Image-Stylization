@@ -4,40 +4,46 @@
     <title>Image Click Position</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
     <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <style>
+
+    </style>
 </head>
 <body>
-    <h1>Upload an Image</h1>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept="image/*" required>
-        <input type="submit" value="Upload">
-    </form>
+<div class="container">
+    <div class="sidebar card">
+        <h2>Control Panel</h2>
+        <form method="post" enctype="multipart/form-data">
+            <div class="file-input-wrapper">
+                <label for="file-input">Choose File</label>
+                <span id="file-name">No file chosen</span>
+                <input id="file-input" type="file" name="file" accept="image/*" required onchange="document.getElementById('file-name').textContent = this.files[0]?.name || 'No file chosen'">
+            </div>
+            <input type="submit" value="Upload Image">
+        </form>
 
-    {% if image_url %}
-        <h2>Selected Image:</h2>
-        
-        <div class="image-container" id="image-container">
-            <img id="uploaded-image" src="{{ image_url }}" alt="Image">
-            <div id="marker-container"></div>  <!-- mark dots -->
+        {% if image_url %}
+        <div class="controls">
+            <button onclick="setMode('foreground')">Mark Foreground</button>
+            <button onclick="setMode('background')">Mark Background</button>
+            <button onclick="clearMarkers()">Clear All Marks</button>
+            <button onclick="submitPoints()">Submit Annotations</button>
         </div>
-        <p id="coords">Click on the picture to select the point prompt</p>
+        {% endif %}
+    </div>
 
-        <h2>标注模式</h2>
-        <button onclick="setMode('foreground')">标注前景</button>
-        <button onclick="setMode('background')">标注背景</button>
+    <div class="main-content card">
+        {% if image_url %}
+            <h2>Image Annotation</h2>
+            <div class="image-container" id="image-container">
+                <img id="uploaded-image" src="{{ image_url }}" alt="Image">
+                <div id="marker-container"></div>
+            </div>
+            <p id="coords">Click the image to add a point</p>
+        {% endif %}
 
-        <p id="notice" style="color: red; font-weight: bold;"></p>
-
-        <button onclick="clearMarkers()">清除所有标记</button>
-        <button onclick="submitPoints()">提交标注结果</button>
-
-    {% endif %}
-
-    <h3>分割结果：</h3>
-    <img id="resultImage" src="" alt="分割结果将显示在这里" style="max-width: 100%; border: 1px solid #ccc;">
-
+        <h3>Segmentation Results:</h3>
+        <div id="resultContainer" class="result-grid"></div>
+    </div>
+</div>
 </body>
-
-
-
-
 </html>

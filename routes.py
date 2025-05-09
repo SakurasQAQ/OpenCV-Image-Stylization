@@ -62,23 +62,27 @@ def getpoints():
     if not os.path.exists(image_path):
         return jsonify({"message": f"找不到图像文件：{filename}"}), 404
 
-
+    # 解析前景和背景点
     fg = [[pt["x"], pt["y"]] for pt in fg_dict]
     bg = [[pt["x"], pt["y"]] for pt in bg_dict]
-
     points = fg + bg
     labels = [1] * len(fg) + [0] * len(bg)
 
+    # 执行 SAM 分割（多候选）
     segmentor.load_image(image_path)
-    mask, _ = segmentor.segment_with_points(points, labels)
+    masks, scores = segmentor.segment_all_masks(points, labels)
 
+    # 导出多个候选分割结果图像
     name_without_ext = os.path.splitext(filename)[0]
-    result_path = f'static/uploads/result_{name_without_ext}.png'
-    segmentor.export_foreground_with_alpha(mask, result_path)
+    saved_paths = segmentor.export_multiple_masks(
+        masks,
+        base_path="static/uploads",
+        prefix=f"result_{name_without_ext}"
+    )
 
     return jsonify({
-        "message": "分割完成",
-        "result": result_path,
+        "message": "分割完成，共生成 %d 个候选 mask" % len(saved_paths),
+        "result": saved_paths,
         "points_used": {
             "foreground": fg,
             "background": bg

@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let currentMode = 'foreground';
     const maxForeground = 5;
-    const maxBackground = 2;
+    const maxBackground = 5;
 
     let foregroundPoints = [];
     let backgroundPoints = [];
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
         if (currentMode === 'background' && backgroundPoints.length >= maxBackground) {
-            alert("背景点不能超过 2 个！");
+            alert("背景点不能超过 5 个！");
             return;
         }
 
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Clean all dots");
     };
 
-    window.submitPoints = function() {
+    window.submitPoints = function () {
         fetch("/getpoints", {
             method: "POST",
             headers: {
@@ -76,13 +76,39 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
             alert("提交成功！后端返回：" + data.message);
-            const resultImg = document.getElementById("resultImage");
-            resultImg.src = data.result + '?t=' + new Date().getTime(); 
-            console.log(data.result)
+        
+            const container = document.getElementById("resultContainer");
+            container.innerHTML = "";  // 清空旧内容
+            
+            data.result.forEach((path, index) => {
+                const img = document.createElement("img");
+                img.src = path + "?t=" + Date.now();  
+                img.alt = "候选结果 " + (index + 1);
+                img.style.maxWidth = "100%";
+                img.style.border = "1px solid #ccc";
+                img.style.margin = "10px 0";
+            
+                const label = document.createElement("div");
+                label.textContent = "候选结果 " + (index + 1);
+                label.style.fontWeight = "bold";
+
+
+                img.style.width = "400px";         
+                img.style.height = "auto";         
+                img.style.objectFit = "contain";   
+                img.style.border = "1px solid #ccc";
+                img.style.margin = "10px 0";
+
+            
+                container.appendChild(label);
+                container.appendChild(img);
+            });
         })
+        
         .catch(err => {
             console.error("提交失败", err);
         });
     };
+    
 
 });

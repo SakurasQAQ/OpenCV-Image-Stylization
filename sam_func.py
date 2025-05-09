@@ -32,7 +32,7 @@ class SAMSegmentor:
         """
         get points and labels
         :param points: [[x1, y1], [x2, y2], ...]
-        :param labels: [1, 0, ...]  # 1=front，0=back
+        :param labels: [1, 0, ...]  # 1=front, 0=back
         :return: best mask, all scores
         """
         input_points = np.array(points)
@@ -51,7 +51,7 @@ class SAMSegmentor:
         if not hasattr(self, 'image'):
             raise RuntimeError("please first call load_image()")
 
-        # ✅ 强制使用 PNG 以避免 JPEG 不支持 RGBA 的问题
+        # use png to aoviding 
         if not save_path.lower().endswith(".png"):
             save_path = os.path.splitext(save_path)[0] + ".png"
 
@@ -62,6 +62,8 @@ class SAMSegmentor:
         return save_path
 
 
+
+
     def export_foreground_black_bg(self, mask, save_path="output/foreground_black.jpg"):
         # Set the non-mask area to black and save
         foreground = self.image.copy()
@@ -70,3 +72,46 @@ class SAMSegmentor:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         cv2.imwrite(save_path, bgr)
         return save_path
+
+
+
+    def segment_all_masks(self, points, labels, multimask=True):
+        """
+        返回所有候选掩码
+        :param points: [[x1, y1], [x2, y2], ...]
+        :param labels: [1, 0, ...]
+        :return: masks, scores
+        """
+        input_points = np.array(points)
+        input_labels = np.array(labels)
+
+        masks, scores, logits = self.predictor.predict(
+            point_coords=input_points,
+            point_labels=input_labels,
+            multimask_output=multimask
+        )
+        return masks, scores
+
+
+
+    def export_multiple_masks(self, masks, base_path="output", prefix="result"):
+        """
+        将多个 mask 导出为透明前景图像：base_path/prefix_0.png, prefix_1.png, ...
+        :param masks: List of masks
+        :return: List of saved file paths
+        """
+        if not hasattr(self, 'image'):
+            raise RuntimeError("please first call load_image()")
+
+        os.makedirs(base_path, exist_ok=True)
+        saved_paths = []
+
+        for i, mask in enumerate(masks):
+            alpha = (mask * 255).astype(np.uint8)
+            rgba = np.dstack((self.image, alpha))
+            save_path = os.path.join(base_path, f"{prefix}_{i}.png")
+            Image.fromarray(rgba).save(save_path)
+            saved_paths.append(save_path)
+
+        return saved_paths
+

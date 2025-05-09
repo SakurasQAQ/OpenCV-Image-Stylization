@@ -23,10 +23,16 @@
 
         {% if image_url %}
         <div class="controls">
-            <button onclick="setMode('foreground')">Mark Foreground</button>
-            <button onclick="setMode('background')">Mark Background</button>
-            <button onclick="clearMarkers()">Clear All Marks</button>
-            <button onclick="submitPoints()">Submit Annotations</button>
+            <button id="foreground-btn" onclick="setMode('foreground')">Mark Foreground</button>
+            <button id="background-btn" onclick="setMode('background')">Mark Background</button>
+
+            <button onclick="clearMarkers()" class="full-width">Clear All Marks</button>
+            <button onclick="submitPoints()" class="full-width">Submit Annotations</button>
+
+            <div id="submit-progress" style="display:none; margin-top: 10px;" class="full-width">
+                <progress id="progress-bar" max="100" value="0" style="width:100%;"></progress>
+                <p style="text-align:center;">Submitting...</p>
+            </div>
         </div>
         {% endif %}
     </div>

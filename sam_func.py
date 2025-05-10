@@ -8,16 +8,35 @@ from segment_anything import sam_model_registry, SamPredictor
 from PIL import Image
 import os
 
+from torch.hub import load_state_dict_from_url
+
 
 class SAMSegmentor:
-    def __init__(self,
-                 model_type="vit_b",
-                 checkpoint_path="resource/sam_vit_b_01ec64.pth",
-                 device=None):
+    def __init__(self, model_type="vit_b", device=None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = sam_model_registry[model_type](checkpoint=checkpoint_path)
+        model_type = "vit_b"
+
+        # 自定义保存目录
+        checkpoint_dir = os.path.join(os.getcwd(), "checkpoints")
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        checkpoint_path = os.path.join(checkpoint_dir, "sam_vit_b_01ec64.pth")
+
+        # 如果本地不存在则下载
+        if not os.path.exists(checkpoint_path):
+            url = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+            print(f"Downloading model to {checkpoint_path} ...")
+            torch.hub.download_url_to_file(url, checkpoint_path)
+            print("Download complete.")
+
+        # 加载模型
+        self.model = sam_model_registry[model_type](checkpoint=None)
+        state_dict = torch.load(checkpoint_path, map_location=self.device)
+        self.model.load_state_dict(state_dict)
         self.model.to(self.device)
+
+        # 初始化 Predictor
         self.predictor = SamPredictor(self.model)
+    
 
     def load_image(self, image_path):
         image = cv2.imread(image_path)
@@ -142,7 +161,7 @@ class SAMSegmentor:
             saved_paths.append(save_path)
 
 
-            # 反选部分
+            # get background part
             inverted = 1 - resized_mask  
             alpha_inv = (inverted * 255).astype(np.uint8)
             rgba_inv = np.dstack((self.original_image, alpha_inv))

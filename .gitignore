@@ -11,3 +11,7 @@ __pycache__/
 static/uploads/
 
 checkpoints/
+
+CartoonGAN_Test/
+
+static/results/

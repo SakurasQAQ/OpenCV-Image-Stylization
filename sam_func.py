@@ -14,7 +14,7 @@ from torch.hub import load_state_dict_from_url
 class SAMSegmentor:
     def __init__(self, model_type="vit_b", device=None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        model_type = "vit_b"
+        #model_type = "vit_b"
 
         # 自定义保存目录
         checkpoint_dir = os.path.join(os.getcwd(), "checkpoints")
@@ -39,21 +39,15 @@ class SAMSegmentor:
     
 
     def load_image(self, image_path):
+        # 1) 读进原始 RGB
         image = cv2.imread(image_path)
-        if image is None:
-            raise FileNotFoundError(f"Can not load image: {image_path}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        self.original_image = image.copy()
+        self.original_size = (image.shape[1], image.shape[0])
 
-        # 保留原始图像尺寸和图像内容
-        self.original_size = (image.shape[1], image.shape[0])  # (width, height)
-        self.original_image = image.copy()  # << 这是关键
-
-        # Resize to 1024x1024 for SAM
-        image_resized = cv2.resize(image, (1024, 1024), interpolation=cv2.INTER_LINEAR)
-        self.predictor.set_image(image_resized)
-
-        self.image = image_resized  # 给 SAM 用的图像
-        return image_resized
+        # 2) 直接把原图交给 predictor
+        self.predictor.set_image(image)
+        return image
 
     def segment_with_points(self, points, labels, multimask=True):
         """
@@ -91,29 +85,24 @@ class SAMSegmentor:
         return masks, scores
 
 
-        def export_foreground_with_alpha(self, mask, save_path="output/foreground.png"):
-            # Apply the mask to the original image and save it as a PNG with a transparent channel
-            if not hasattr(self, 'image'):
-                raise RuntimeError("please first call load_image()")
-
-            # use png to aoviding 
-            if not save_path.lower().endswith(".png"):
-                save_path = os.path.splitext(save_path)[0] + ".png"
-
-            alpha = (mask * 255).astype(np.uint8)
-            rgba = np.dstack((self.image, alpha))
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            Image.fromarray(rgba).save(save_path)
-            return save_path
-
+    def export_foreground_with_alpha(self, mask, save_path="output/foreground.png"):
+        h, w = self.original_image.shape[:2]
+        mask_rs = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+        alpha = (mask_rs * 255).astype(np.uint8)
+        rgba = np.dstack((self.original_image, alpha))
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        Image.fromarray(rgba).save(save_path)
+        return save_path
 
 
 
     def export_foreground_black_bg(self, mask, save_path="output/foreground_black.jpg"):
-        # Set the non-mask area to black and save
-        foreground = self.image.copy()
-        foreground[~mask] = 0
-        bgr = cv2.cvtColor(foreground, cv2.COLOR_RGB2BGR)
+        h, w = self.original_image.shape[:2]
+        mask_rs = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+        mask_bool = mask_rs.astype(bool)
+        fg = self.original_image.copy()
+        fg[~mask_bool] = 0
+        bgr = cv2.cvtColor(fg, cv2.COLOR_RGB2BGR)
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         cv2.imwrite(save_path, bgr)
         return save_path
@@ -146,27 +135,27 @@ class SAMSegmentor:
         saved_paths = []
 
         for i, mask in enumerate(masks):
-            # Resize mask to original image size
-            resized_mask = cv2.resize(mask.astype(np.uint8), self.original_image.shape[1::-1], interpolation=cv2.INTER_NEAREST)
+            # 1) 把 mask 拉回到原图尺寸（原图大小 stored in self.original_image）
+            h, w = self.original_image.shape[:2]
+            resized_mask = cv2.resize(
+                mask.astype(np.uint8),
+                (w, h),
+                interpolation=cv2.INTER_NEAREST
+            )
             alpha = (resized_mask * 255).astype(np.uint8)
 
-            # Ensure shapes match
-            assert alpha.shape[:2] == self.original_image.shape[:2]
+        # 2) 保存灰度掩膜（0/255）
+            mask_path = os.path.join(base_path, f"{prefix}_{i}_mask.png")
+            cv2.imwrite(mask_path, alpha)
+            saved_paths.append(mask_path)
 
-            # Combine with original image
+        # 3) 保存可视化版：原图 + 前景 α 通道
             rgba = np.dstack((self.original_image, alpha))
-
-            save_path = os.path.join(base_path, f"{prefix}_{i}.png")
-            Image.fromarray(rgba).save(save_path)
-            saved_paths.append(save_path)
-
-
-            # get background part
-            inverted = 1 - resized_mask  
-            alpha_inv = (inverted * 255).astype(np.uint8)
-            rgba_inv = np.dstack((self.original_image, alpha_inv))
-            inv_path = os.path.join(base_path, f"{prefix}_{i}_inverted.png")
-            Image.fromarray(rgba_inv).save(inv_path)
-            saved_paths.append(inv_path)
+            rgba_path = os.path.join(base_path, f"{prefix}_{i}.png")
+            os.makedirs(os.path.dirname(rgba_path), exist_ok=True)
+            Image.fromarray(rgba).save(rgba_path)
+            saved_paths.append(rgba_path)
 
         return saved_paths
+
+    

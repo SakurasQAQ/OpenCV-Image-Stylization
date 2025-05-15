@@ -25,6 +25,9 @@
         <div class="controls">
             <button id="foreground-btn" onclick="setMode('foreground')">Mark Foreground</button>
             <button id="background-btn" onclick="setMode('background')">Mark Background</button>
+ 
+
+
 
             <button id="box-btn" onclick="setMode('box')">Select box</button>
 
@@ -44,25 +47,55 @@
                 <label><input type="radio" name="resultChoice" value="2"> Option 3</label>
                 <button onclick="confirmSelection()">Confirm Selection</button>
             </div>
+                <div id="stylize-section" style="display:none; margin-top: 30px;">
+                <p>Select stylize part: </p>
+                <label><input type="radio" name="stylizeRegion" value="foreground" onchange="onRegionSelect()"> 前景</label>
+                <label><input type="radio" name="stylizeRegion" value="background" onchange="onRegionSelect()"> 背景</label>
+                <button id="apply-stylization-btn" onclick="applyStylization()" style="display:none; padding: 10px 20px; font-size: 16px;">
+                    Oil painting style
+                </button>
+                </div>
+
             <input type="hidden" id="img-width" value="{{ width }}">
             <input type="hidden" id="img-height" value="{{ height }}">
         </div>
         {% endif %}
     </div>
 
-    <div class="main-content card">
-        {% if image_url %}
-            <h2>Image Annotation</h2>
-            <div class="image-container" id="image-container">
-                <img id="uploaded-image" src="{{ image_url }}" alt="Image">
-                <div id="marker-container"></div>
-            </div>
-            <p id="coords">Click the image to add a point</p>
-        {% endif %}
+  <div class="main-content card">
 
+      <h1>Dashboard</h1>
+      {% if image_url %}
+          <h2>Image Annotation</h2>
+          <div class="image-container" id="image-container">
+              <img id="uploaded-image" src="{{ image_url }}" alt="Image">
+              <div id="marker-container"></div>
+          </div>
+          <p id="coords">Click the image to add a point</p>
+      {% endif %}
+
+      <div id="segmentation-section" style="display: none;">
         <h3>Segmentation Results:</h3>
         <div id="resultContainer" class="result-grid"></div>
-    </div>
+      </div>
+
+<!-- 
+      <div id="stylize-section" style="display:none; margin-top: 30px;">
+          <button onclick="applyStylization()" style="padding: 10px 20px; font-size: 16px;">Stylize Selected Area</button>
+      </div> -->
+
+
+      <div id="styled-output" style="margin-top: 30px; display: none;">
+            <h3>Stylized Output:</h3>
+            <img id="styled-img" src="" style="max-width: 100%; border: 1px solid #ccc;">
+        </div>
+  </div>
+
 </div>
 </body>
 </html>
+<script>
+  window.originalFileName = "{{ image_url.split('/')[-1] if image_url else '' }}";
+</script>
+
+    

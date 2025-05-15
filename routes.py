@@ -3,6 +3,12 @@ from flask import Blueprint, request, render_template, url_for, current_app, jso
 from werkzeug.utils import secure_filename
 from sam_func import SAMSegmentor
 from PIL import Image
+from stylize_back import cartoon_effect
+from stylize_front import cartoonize_foreground
+import cv2
+
+
+
 
 # function_ upload Images
 app_bp = Blueprint('app', __name__)
@@ -97,7 +103,7 @@ def getpoints():
         "message": f"Segmentation completed using [{mode_used}], {len(saved_paths)} results generated.",
         "result": saved_paths,
         "mode": mode_used
-    })
+    }) 
 
 
 
@@ -113,3 +119,28 @@ def confirm_result():
 
     print(f"User confirmed: {fg_result} (foreground), {bg_result} (background) for {filename}")
     return jsonify({"message": f"Confirmed foreground: {os.path.basename(fg_result)}, background: {os.path.basename(bg_result)}"})
+
+@app_bp.route('/stylize', methods=['POST'])
+def stylize():
+    data = request.get_json()
+    mask_path  = data.get("mask_path")
+    filename   = data.get("filename")
+    style_type = data.get("styleType")
+    if not mask_path or not filename or style_type not in ("foreground", "background"):
+        return jsonify({"message": "参数缺失或非法"}), 400
+
+    img_path       = os.path.join("static/uploads", filename)
+    mask_full_path = mask_path
+    img  = cv2.imread(img_path)
+    mask = cv2.imread(mask_full_path, 0)
+
+    if style_type == 'foreground':
+        styled = cartoonize_foreground(img, mask)
+    else:
+        styled = cartoon_effect(img, mask)
+
+    name = os.path.splitext(filename)[0]
+    out_path = f"static/results/stylized_{style_type}_{name}.jpg"
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    cv2.imwrite(out_path, styled)
+    return jsonify({"message": "风格化完成", "styled_path": out_path})

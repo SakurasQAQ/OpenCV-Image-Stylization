@@ -58,24 +58,24 @@ def getpoints():
     if not os.path.exists(image_path):
         return jsonify({"message": f"Image file not found: {filename}"}), 404
 
-    # 坐标缩放函数
+
     def scale_point(pt, orig_w, orig_h, tgt_w, tgt_h):
         x = int(pt[0] * tgt_w / orig_w)
         y = int(pt[1] * tgt_h / orig_h)
         return [x, y]
 
-    # 原始尺寸
+
     orig_w = orig_size.get("width") if orig_size else 1024
     orig_h = orig_size.get("height") if orig_size else 1024
     tgt_w, tgt_h = 1024, 1024
 
-    # 点坐标缩放
+
     fg = [scale_point([pt["x"], pt["y"]], orig_w, orig_h, tgt_w, tgt_h) for pt in fg_dict]
     bg = [scale_point([pt["x"], pt["y"]], orig_w, orig_h, tgt_w, tgt_h) for pt in bg_dict]
     points = fg + bg
     labels = [1] * len(fg) + [0] * len(bg)
 
-    # 框坐标缩放
+
     box_np = None
     if box_dict and len(box_dict) == 2:
         x0, y0 = scale_point([box_dict[0]["x"], box_dict[0]["y"]], orig_w, orig_h, tgt_w, tgt_h)
@@ -84,7 +84,7 @@ def getpoints():
 
     segmentor.load_image(image_path)
 
-    # 调用组合接口
+
     if box_np:
         masks, scores = segmentor.segment_with_box_and_points(box=box_np, points=points, labels=labels)
         mode_used = "box+point" if points else "box-only"
@@ -123,24 +123,19 @@ def confirm_result():
 @app_bp.route('/stylize', methods=['POST'])
 def stylize():
     data = request.get_json()
-    mask_path  = data.get("mask_path")
-    filename   = data.get("filename")
-    style_type = data.get("styleType")
-    if not mask_path or not filename or style_type not in ("foreground", "background"):
-        return jsonify({"message": "参数缺失或非法"}), 400
+    mask_path = data.get("mask_path")
+    filename  = data.get("filename")
+    stylePart = data.get("stylePart", "foreground")
 
-    img_path       = os.path.join("static/uploads", filename)
-    mask_full_path = mask_path
-    img  = cv2.imread(img_path)
-    mask = cv2.imread(mask_full_path, 0)
+    img = cv2.imread(os.path.join("static/uploads", filename))
+    mask = cv2.imread(mask_path, 0)
 
-    if style_type == 'foreground':
-        styled = cartoonize_foreground(img, mask)
-    else:
+    if stylePart == "background":
         styled = cartoon_effect(img, mask)
+    else:
+        styled = cartoonize_foreground(img, mask)
 
-    name = os.path.splitext(filename)[0]
-    out_path = f"static/results/stylized_{style_type}_{name}.jpg"
+    out_path = f"static/results/stylized_{stylePart}_{os.path.splitext(filename)[0]}.jpg"
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     cv2.imwrite(out_path, styled)
-    return jsonify({"message": "风格化完成", "styled_path": out_path})
+    return jsonify({"message":"OK","styled_path": out_path})

@@ -1,27 +1,26 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // 当前模式：foreground/background/box
     let currentMode = 'foreground';
+    let currentStylizeMode = 'foreground';
     const maxForeground = 55;
     const maxBackground = 55;
 
-    // 前景、背景的原图坐标
+
     let foregroundPoints = [];
     let backgroundPoints = [];
-    // 框选：CSS 显示用 & 原图坐标用
+
     let boxCssPoints = [];
     let boxPoints = [];
 
     let isBoxMode = false;
     let currentFilename = "";
 
-    // 缩放比：页面上展示 → 原图像素
     let scaleX = 1, scaleY = 1;
 
     const img = document.getElementById("uploaded-image");
     const coords = document.getElementById("coords");
     const markerContainer = document.getElementById("marker-container");
 
-    // 切换标注模式
+
     window.setMode = function (mode) {
         currentMode = mode;
         isBoxMode = (mode === 'box');
@@ -46,14 +45,14 @@ document.addEventListener("DOMContentLoaded", function () {
             : 'var(--color-bt3)';
     };
 
-    // 取文件名
+
     if (img && img.src) {
         const parts = img.src.split('/');
         currentFilename = parts[parts.length - 1];
         setMode('foreground');
     }
 
-    // 图片加载后计算缩放比
+
     if (img) {
         img.addEventListener("load", () => {
             const dpr = window.devicePixelRatio || 1;
@@ -63,22 +62,20 @@ document.addEventListener("DOMContentLoaded", function () {
           });
     }
 
-    // 点击标注
+
     if (img) {
         img.addEventListener("click", function (event) {
             const rect = img.getBoundingClientRect();
             const x_img = event.clientX - rect.left;
             const y_img = event.clientY - rect.top;
 
-            // 框选模式
             if (isBoxMode) {
                 if (boxCssPoints.length === 2) {
                     boxCssPoints = [];
                     boxPoints    = [];
                 }
-                // CSS 位置
+
                 boxCssPoints.push({ x: x_img, y: y_img });
-                // 原图位置
                 const x_ori = Math.round(x_img * scaleX);
                 const y_ori = Math.round(y_img * scaleY);
                 boxPoints.push({ x: x_ori, y: y_ori });
@@ -87,24 +84,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // 点模式：数量限制
             if (currentMode === 'foreground' && foregroundPoints.length >= maxForeground) {
-                alert(`最多 ${maxForeground} 个前景点`);
+                alert(` ${maxForeground} is maximum foreground points`);
                 return;
             }
             if (currentMode === 'background' && backgroundPoints.length >= maxBackground) {
-                alert(`最多 ${maxBackground} 个背景点`);
+                alert(` ${maxBackground} is maximum background points`);
                 return;
             }
 
-            // 画小圆点（用 CSS 坐标）
+
             const marker = document.createElement("div");
             marker.classList.add("marker", currentMode);
             marker.style.left = `${x_img}px`;
             marker.style.top  = `${y_img}px`;
             markerContainer.appendChild(marker);
 
-            // 存原图坐标
             const x_ori = Math.round(x_img * scaleX);
             const y_ori = Math.round(y_img * scaleY);
             if (currentMode === 'foreground') {
@@ -117,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 清除所有标记
+
     window.clearMarkers = function () {
         markerContainer.innerHTML = '';
         foregroundPoints = [];
@@ -125,13 +120,13 @@ document.addEventListener("DOMContentLoaded", function () {
         boxCssPoints = [];
         boxPoints    = [];
         coords.textContent = 'Split Completed';
-        alert("已清除所有标记");
+        alert("All marks cleared");
         setMode('foreground');
     };
 
-    // 绘制框选的绿色虚线框（基于 CSS 坐标）
+
     function drawBoxOverlay() {
-        // 先清空旧框
+
         markerContainer.querySelectorAll(".box-overlay").forEach(el => el.remove());
 
         if (boxCssPoints.length === 2) {
@@ -154,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateCoordsDisplay();
     }
 
-    // 更新左侧显示的坐标信息
+
     function updateCoordsDisplay() {
         const fgText = foregroundPoints.map(p => `(${p.x},${p.y})`).join(', ') || 'None';
         const bgText = backgroundPoints.map(p => `(${p.x},${p.y})`).join(', ') || 'None';
@@ -169,11 +164,11 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
     }
 
-    // 提交标注到后端
+
     window.submitPoints = function () {
         if (foregroundPoints.length + backgroundPoints.length === 0
             && boxPoints.length !== 2) {
-            alert("请至少标注一个点或一个框。");
+            alert("Mark at least one point.");
             return;
         }
 
@@ -196,7 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
-            alert("提交成功: " + data.message);
+            alert("Submit successfully: " + data.message);
             renderResults(data.result);
             progressBar.value = 100;
             progress.style.display = "none";
@@ -206,11 +201,10 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(err => {
             console.error("submit failed", err);
-            alert("提交失败");
+            alert("Submission failed");
         });
     };
 
-    // 渲染后端返回的多结果（png + inverted）
     function renderResults(resultPaths) {
         const container = document.getElementById("resultContainer");
         container.innerHTML = "";
@@ -232,14 +226,13 @@ document.addEventListener("DOMContentLoaded", function () {
             col.style.alignItems      = "center";
             col.style.width           = "100%";
 
-            // 正向前景图
             const img1 = document.createElement("img");
             img1.src   = resultPaths[i] + "?t=" + Date.now();
             img1.alt   = `Mask ${i}`; 
             img1.style.width    = "400px";
             img1.style.objectFit= "contain";
 
-            // 反转背景图
+       
             const img2 = document.createElement("img");
             img2.src   = resultPaths[i+1] + "?t=" + Date.now();
             img2.alt   = `Inverted ${i}`; 
@@ -256,7 +249,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.confirmSelection = function () {
     const sel = document.querySelector('input[name="resultChoice"]:checked');
     if (!sel) {
-        alert("请先选择一个分割结果。");
+        alert("Please select a segmentation result first.");
         return;
     }
     const idx      = sel.value;
@@ -264,8 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const maskPath = `static/uploads/${baseName}_mask.png`;
     window.originalFileName  = currentFilename;
     window.selectedMaskPath  = maskPath;
-    console.log("✔ originalFileName:", window.originalFileName);
-    console.log("✔ selectedMaskPath:", window.selectedMaskPath);
+
 
     fetch("/confirm_result", {
         method: "POST",
@@ -278,46 +270,61 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .then(res => res.json())
     .then(d => {
-        alert("Confirmed: " + d.message);
+        
         document.getElementById("stylize-section").style.display = "block";  
     })
     .catch(err => console.error("Confirmation failed", err));
     }
 
-    // 风格化处理函数：确认结果后点击触发
-   // 只要选中 radio，就把按钮显示出来
-window.onRegionSelect = function() {
-  document.getElementById("apply-stylization-btn").style.display = "inline-block";
+    window.onRegionSelect = function() {
+    document.getElementById("apply-stylization-btn").style.display = "inline-block";
+    };
+
+    window.applyStylization = function () {
+    if (!window.selectedMaskPath || !window.originalFileName) {
+        alert("Missing selected region or filename");
+        return;
+    }
+    fetch('/stylize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+        filename: window.originalFileName,
+        mask_path: window.selectedMaskPath,
+        stylePart: currentStylizeMode,    
+        style: 'oil_paint'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('segmentation-section').style.display = 'none';
+        document.getElementById('styled-img').src = '/' + data.styled_path;
+        document.getElementById("styled-output").style.display = "block";
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Stylization error");
+    });
 };
 
-window.applyStylization = function() {
-  const region = document.querySelector('input[name="stylizeRegion"]:checked');
-  if (!region) {
-    alert("请先选择风格化区域");
-    return;
-  }
-  const styleType = region.value; // 'foreground' 或 'background'
-  const maskPath = window.selectedMaskPath;
-  const filename = window.originalFileName;
-  fetch('/stylize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename, mask_path: maskPath, styleType })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.styled_path) {
-        document.getElementById('styled-img').src = '/' + data.styled_path;
-        // 隐藏分割结果区域
-        document.getElementById('segmentation-section').style.display = 'none';
-        // 显示风格化结果
-        document.getElementById('styled-output').style.display = 'block';
-    } else {
-      alert("风格化失败");
-    }
-  })
-  .catch(() => alert("风格化出错"));
-};
+    window.setStylizeMode = function(mode) {
+        currentStylizeMode = mode;
+        const fgBtn = document.getElementById('stylize-foreground-btn');
+        const bgBtn = document.getElementById('stylize-background-btn');
+        fgBtn.disabled = (mode === 'foreground');
+        fgBtn.style.backgroundColor = mode === 'foreground'
+            ? 'var(--color-btn-cancel)'
+            : 'var(--color-bt3)';
+        bgBtn.disabled = (mode === 'background');
+        bgBtn.style.backgroundColor = mode === 'background'
+            ? 'var(--color-btn-cancel)'
+            : 'var(--color-bt3)';
+        
+
+        document.getElementById('stylize-go-btn').style.display = 'block';
+        };
+
+    
 
 
 

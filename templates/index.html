@@ -47,14 +47,17 @@
                 <label><input type="radio" name="resultChoice" value="2"> Option 3</label>
                 <button onclick="confirmSelection()">Confirm Selection</button>
             </div>
-                <div id="stylize-section" style="display:none; margin-top: 30px;">
-                <p>Select stylize part: </p>
-                <label><input type="radio" name="stylizeRegion" value="foreground" onchange="onRegionSelect()"> 前景</label>
-                <label><input type="radio" name="stylizeRegion" value="background" onchange="onRegionSelect()"> 背景</label>
-                <button id="apply-stylization-btn" onclick="applyStylization()" style="display:none; padding: 10px 20px; font-size: 16px;">
-                    Oil painting style
+
+            <div id="stylize-section" class="full-width" style="display:none; margin-top:30px;">
+            <div class="controls">
+                <button id="stylize-foreground-btn" onclick="setStylizeMode('foreground')">main part</button>
+                <button id="stylize-background-btn" onclick="setStylizeMode('background')">background</button>
+            </div>
+                <button id="stylize-go-btn" class="btn full-width" onclick="applyStylization()" style="display:none;">
+                    Hayao Miyazaki style
                 </button>
-                </div>
+            </div>
+
 
             <input type="hidden" id="img-width" value="{{ width }}">
             <input type="hidden" id="img-height" value="{{ height }}">
@@ -78,11 +81,6 @@
         <h3>Segmentation Results:</h3>
         <div id="resultContainer" class="result-grid"></div>
       </div>
-
-<!-- 
-      <div id="stylize-section" style="display:none; margin-top: 30px;">
-          <button onclick="applyStylization()" style="padding: 10px 20px; font-size: 16px;">Stylize Selected Area</button>
-      </div> -->
 
 
       <div id="styled-output" style="margin-top: 30px; display: none;">

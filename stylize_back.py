@@ -11,19 +11,24 @@ sys.path.append(os.path.abspath(
 ))
 from CartoonGAN_Test.network.Transformer import Transformer
 
-_cartoon_model = None
-def load_cartoon_model():
-    global _cartoon_model
-    if _cartoon_model is None:
-        _cartoon_model = Transformer()
-        model_path = os.path.join(
-            os.path.dirname(__file__),
-            "CartoonGAN_Test/pretrained_model/Hayao_net_G_float.pth"
-        )
-        state = torch.load(model_path, map_location="cpu")
-        _cartoon_model.load_state_dict(state)
-        _cartoon_model.eval()
-    return _cartoon_model
+_model_cache = {}  # 替代 _cartoon_model，全局缓存多个模型
+
+def load_cartoon_model(style="Hayao"):
+    if style in _model_cache:
+        return _model_cache[style]
+
+    model_path = os.path.join(
+        os.path.dirname(__file__),
+        f"CartoonGAN_Test/pretrained_model/{style}_net_G_float.pth"
+    )
+    model = Transformer()
+    state = torch.load(model_path, map_location="cpu")
+    model.load_state_dict(state)
+    model.eval()
+    _model_cache[style] = model
+    return model
+
+
 
 def apply_histogram_smoothing(img_bgr):
     yuv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2YUV)
@@ -34,7 +39,7 @@ def apply_histogram_smoothing(img_bgr):
 def enhance_structure(img_bgr):
     return cv2.edgePreservingFilter(img_bgr, flags=1, sigma_s=60, sigma_r=0.4)
 
-def cartoon_effect(img_bgr, mask=None):
+def cartoon_effect(img_bgr, mask=None, style="Hayao"):
     # 1. 结构增强
     enhanced = enhance_structure(img_bgr)
 
@@ -51,7 +56,7 @@ def cartoon_effect(img_bgr, mask=None):
     input_tensor = tensor_L.repeat(1, 3, 1, 1)                     # [1,3,H,W]
 
     # 5. 网络推理
-    model = load_cartoon_model()
+    model = load_cartoon_model(style)
     with torch.no_grad():
         out = model(input_tensor)       # [1,3,256,256]
         out = out.squeeze(0).cpu()      # [3,256,256]

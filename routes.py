@@ -7,8 +7,12 @@ from stylize_back import cartoon_effect
 from stylize_front import cartoonize_foreground
 import cv2
 
+from animegan2_front import AnimeGANv2Front
+from animegan2_back import AnimeGANv2Back 
 
 
+animegan_front = AnimeGANv2Front()
+animegan_back = AnimeGANv2Back()
 
 # function_ upload Images
 app_bp = Blueprint('app', __name__)
@@ -120,22 +124,61 @@ def confirm_result():
     print(f"User confirmed: {fg_result} (foreground), {bg_result} (background) for {filename}")
     return jsonify({"message": f"Confirmed foreground: {os.path.basename(fg_result)}, background: {os.path.basename(bg_result)}"})
 
+
+
+
 @app_bp.route('/stylize', methods=['POST'])
 def stylize():
     data = request.get_json()
     mask_path = data.get("mask_path")
     filename  = data.get("filename")
-    stylePart = data.get("stylePart", "foreground")
+    stylePart = data.get("stylePart", "foreground")  
+    style = data.get("style", "Hayao")      
 
-    img = cv2.imread(os.path.join("static/uploads", filename))
+    if not filename or not mask_path:
+        return jsonify({"message": "Missing filename or mask_path"}), 400
+
+    img_path = os.path.join("static/uploads", filename)
+    img = cv2.imread(img_path)
     mask = cv2.imread(mask_path, 0)
 
-    if stylePart == "background":
-        styled = cartoon_effect(img, mask)
-    else:
-        styled = cartoonize_foreground(img, mask)
+    if img is None or mask is None:
+        return jsonify({"message": "Image or mask not found"}), 404
 
-    out_path = f"static/results/stylized_{stylePart}_{os.path.splitext(filename)[0]}.jpg"
+    # AnimeGANv2 路径
+    if style == "Hayao":
+        if stylePart == "foreground":
+            styled = cartoonize_foreground(img, mask,style="Hayao")
+        else:
+            styled = cartoon_effect(img, mask,style="Hayao")
+
+    elif style == "Shinkai":
+        if stylePart == "foreground":
+            styled = cartoonize_foreground(img, mask,style="Shinkai")
+        else:
+            styled = cartoon_effect(img, mask,style="Shinkai")
+        
+    elif style == "Hosoda":
+        if stylePart == "foreground":
+            styled = cartoonize_foreground(img, mask,style="Hosoda")
+        else:
+            styled = cartoon_effect(img, mask,style="Hosoda")
+    
+    else:
+        if stylePart == "foreground":
+            styled = cartoonize_foreground(img, mask,style="Paprika")
+        else:
+            styled = cartoon_effect(img, mask,style="Paprika")
+
+    # else:
+    #     if stylePart == "foreground":
+    #         styled = cartoonize_foreground(img, mask)
+    #     else:
+    #         styled = cartoon_effect(img, mask)
+
+    out_name = f"stylized_{style}_{stylePart}_{os.path.splitext(filename)[0]}.jpg"
+    out_path = os.path.join("static/results", out_name)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     cv2.imwrite(out_path, styled)
-    return jsonify({"message":"OK","styled_path": out_path})
+
+    return jsonify({"message": "OK", "styled_path": out_path})

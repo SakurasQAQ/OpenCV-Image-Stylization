@@ -34,6 +34,10 @@ body {
     margin: 0;
     padding: 0;
 }
+
+
+
+
 .container {
     display: flex;
     gap: 20px;
@@ -152,7 +156,7 @@ form input[type="submit"],
 }
 .selection-group button {
     margin-top: 10px;
-    background-color: var(--color-bt1);
+    background-color: var(--color-bt3);
     border: none;
     padding: 8px 12px;
     color: white;

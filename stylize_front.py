@@ -11,22 +11,26 @@ sys.path.append(os.path.abspath(
 ))
 from CartoonGAN_Test.network.Transformer import Transformer
 
-_cartoon_model = None
-def load_cartoon_model():
-    global _cartoon_model
-    if _cartoon_model is None:
-        _cartoon_model = Transformer()
-        model_path = os.path.join(
-            os.path.dirname(__file__),
-            "CartoonGAN_Test/pretrained_model/Hayao_net_G_float.pth"
-        )
-        state = torch.load(model_path, map_location="cpu")
-        _cartoon_model.load_state_dict(state)
-        _cartoon_model.eval()
-    return _cartoon_model
+_model_cache = {}  
+
+def load_cartoon_model(style="Hayao"):
+    if style in _model_cache:
+        return _model_cache[style]
+
+    model_path = os.path.join(
+        os.path.dirname(__file__),
+        f"CartoonGAN_Test/pretrained_model/{style}_net_G_float.pth"
+    )
+    model = Transformer()
+    state = torch.load(model_path, map_location="cpu")
+    model.load_state_dict(state)
+    model.eval()
+    _model_cache[style] = model
+    return model
 
 
-def cartoonize_foreground(img_bgr, mask):
+
+def cartoonize_foreground(img_bgr, mask, style="Hayao"):
     """
     仅对 mask 为前景的区域进行风格化，其他区域保持原样
     """
@@ -47,7 +51,7 @@ def cartoonize_foreground(img_bgr, mask):
     input_tensor = (torch.from_numpy(fg_resized).permute(2, 0, 1).float() / 127.5) - 1.0
     input_tensor = input_tensor.unsqueeze(0)
 
-    model = load_cartoon_model()
+    model = load_cartoon_model(style)
     with torch.no_grad():
         out = model(input_tensor)[0]  # [3, 256, 256]
     out = (out + 1) / 2.0  # [0, 1]

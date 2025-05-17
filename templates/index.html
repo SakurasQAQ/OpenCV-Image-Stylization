@@ -45,7 +45,7 @@
                 <label><input type="radio" name="resultChoice" value="0"> Option 1</label>
                 <label><input type="radio" name="resultChoice" value="1"> Option 2</label>
                 <label><input type="radio" name="resultChoice" value="2"> Option 3</label>
-                <button onclick="confirmSelection()">Confirm Selection</button>
+                <button onclick="confirmSelection()" class="cons">Confirm Selection</button>
             </div>
 
             <div id="stylize-section" class="full-width" style="display:none; margin-top:30px;">
@@ -53,9 +53,25 @@
                 <button id="stylize-foreground-btn" onclick="setStylizeMode('foreground')">main part</button>
                 <button id="stylize-background-btn" onclick="setStylizeMode('background')">background</button>
             </div>
-                <button id="stylize-go-btn" class="btn full-width" onclick="applyStylization()" style="display:none;">
+                <button id="stylize-go-btn"  onclick="applyStylization('Hayao')" style="display:none; margin-top: 10px;">
                     Hayao Miyazaki style
                 </button>
+
+                <button id="stylize-sh-btn"  onclick="applyStylization('Shinkai')" style="display:none;">
+                    Shinkai Style
+                </button>
+
+                <button id="stylize-ho-btn"  onclick="applyStylization('Hosoda')" style="display:none;">
+                    Hosoda Style
+                </button>
+
+                <button id="stylize-pa-btn"  onclick="applyStylization('Paprika')" style="display:none;">
+                    Paprika Style
+                </button>
+
+                <!-- <button id="animegan-go-btnX" class="btn full-width" onclick="applyAnimeGANStylization()" style="display:none;">
+                    AnimeGANv2 Style
+                </button> -->
             </div>
 
 

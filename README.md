@@ -17,6 +17,9 @@ pip install -r requirements.txt
 # Model Checkpoint
 When the fisrt run the project, the program will automatically download the required weight model'
 
+For CartoonGAN per-trainning model, please follow https://github.com/maciej3031/comixify.git to download pretrained model
+comixify/CartoonGAN/pretrained_model and save it in CartoonTest foldier.
+
 # Run the App
 ```bash
 python app.py

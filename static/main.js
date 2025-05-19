@@ -321,40 +321,40 @@ document.addEventListener("DOMContentLoaded", function () {
             : 'var(--color-bt3)';
         
         document.getElementById('stylize-go-btn').style.display = 'block';       
-        // document.getElementById('animegan-go-btnX').style.display = 'block';
+        document.getElementById('animegan-go-btnX').style.display = 'block';
         document.getElementById('stylize-sh-btn').style.display = 'block';
         document.getElementById('stylize-ho-btn').style.display = 'block';
         document.getElementById('stylize-pa-btn').style.display = 'block';
         };
 
 
-//         window.applyAnimeGANStylization = function () {
-//     if (!window.selectedMaskPath || !window.originalFileName) {
-//         alert("Missing selected region or filename");
-//         return;
-//     }
+        window.applyAnimeGANStylization = function () {
+    if (!window.selectedMaskPath || !window.originalFileName) {
+        alert("Missing selected region or filename");
+        return;
+    }
 
-//     fetch('/stylize', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//             filename: window.originalFileName,
-//             mask_path: window.selectedMaskPath,
-//             stylePart: currentStylizeMode,  // 和 Hayao Miyazaki 共用
-//             style: 'animegan'
-//         })
-//     })
-//     .then(res => res.json())
-//     .then(data => {
-//         document.getElementById('segmentation-section').style.display = 'none';
-//         document.getElementById('styled-img').src = '/' + data.styled_path;
-//         document.getElementById("styled-output").style.display = "block";
-//     })
-//     .catch(err => {
-//         console.error(err);
-//         alert("Stylization error");
-//     });
-// };
+    fetch('/stylize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            filename: window.originalFileName,
+            mask_path: window.selectedMaskPath,
+            stylePart: currentStylizeMode,  // 和 Hayao Miyazaki 共用
+            style: 'animegan'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('segmentation-section').style.display = 'none';
+        document.getElementById('styled-img').src = '/' + data.styled_path;
+        document.getElementById("styled-output").style.display = "block";
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Stylization error");
+    });
+};
 
     
 

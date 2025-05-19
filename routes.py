@@ -7,12 +7,12 @@ from stylize_back import cartoon_effect
 from stylize_front import cartoonize_foreground
 import cv2
 
-from animegan2_front import AnimeGANv2Front
-from animegan2_back import AnimeGANv2Back 
+# from animegan2_front import AnimeGANv2Front
+# from animegan2_back import AnimeGANv2Back 
 
 
-animegan_front = AnimeGANv2Front()
-animegan_back = AnimeGANv2Back()
+# animegan_front = AnimeGANv2Front("checkpoints/AnimeGANv2_best.pth")
+# animegan_back = AnimeGANv2Back("checkpoints/AnimeGANv2_best.pth")
 
 # function_ upload Images
 app_bp = Blueprint('app', __name__)
@@ -145,7 +145,7 @@ def stylize():
     if img is None or mask is None:
         return jsonify({"message": "Image or mask not found"}), 404
 
-    # AnimeGANv2 路径
+
     if style == "Hayao":
         if stylePart == "foreground":
             styled = cartoonize_foreground(img, mask,style="Hayao")
@@ -163,13 +163,19 @@ def stylize():
             styled = cartoonize_foreground(img, mask,style="Hosoda")
         else:
             styled = cartoon_effect(img, mask,style="Hosoda")
-    
+            
+    # elif style == "animegan":
+    #     if stylePart == "foreground":
+    #         styled = animegan_front.stylize_foreground(img, mask)
+    #     else:
+    #         styled = animegan_back.stylize_background(img, mask)
     else:
         if stylePart == "foreground":
             styled = cartoonize_foreground(img, mask,style="Paprika")
         else:
             styled = cartoon_effect(img, mask,style="Paprika")
 
+    
     # else:
     #     if stylePart == "foreground":
     #         styled = cartoonize_foreground(img, mask)

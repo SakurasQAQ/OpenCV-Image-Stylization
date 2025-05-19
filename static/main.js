@@ -320,20 +320,12 @@ document.addEventListener("DOMContentLoaded", function () {
             ? 'var(--color-btn-cancel)'
             : 'var(--color-bt3)';
         
-
-        document.getElementById('stylize-go-btn').style.display = 'block';
-        
+        document.getElementById('stylize-go-btn').style.display = 'block';       
         // document.getElementById('animegan-go-btnX').style.display = 'block';
         document.getElementById('stylize-sh-btn').style.display = 'block';
         document.getElementById('stylize-ho-btn').style.display = 'block';
         document.getElementById('stylize-pa-btn').style.display = 'block';
         };
-
-
-
-
-
-
 
 
 //         window.applyAnimeGANStylization = function () {
@@ -365,8 +357,5 @@ document.addEventListener("DOMContentLoaded", function () {
 // };
 
     
-
-
-
 
 }); 

@@ -16,36 +16,31 @@ class SAMSegmentor:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         #model_type = "vit_b"
 
-        # 自定义保存目录
+
         checkpoint_dir = os.path.join(os.getcwd(), "checkpoints")
         os.makedirs(checkpoint_dir, exist_ok=True)
         checkpoint_path = os.path.join(checkpoint_dir, "sam_vit_b_01ec64.pth")
 
-        # 如果本地不存在则下载
+
         if not os.path.exists(checkpoint_path):
             url = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
             print(f"Downloading model to {checkpoint_path} ...")
             torch.hub.download_url_to_file(url, checkpoint_path)
             print("Download complete.")
 
-        # 加载模型
         self.model = sam_model_registry[model_type](checkpoint=None)
         state_dict = torch.load(checkpoint_path, map_location=self.device)
         self.model.load_state_dict(state_dict)
         self.model.to(self.device)
-
-        # 初始化 Predictor
         self.predictor = SamPredictor(self.model)
     
 
     def load_image(self, image_path):
-        # 1) 读进原始 RGB
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         self.original_image = image.copy()
         self.original_size = (image.shape[1], image.shape[0])
 
-        # 2) 直接把原图交给 predictor
         self.predictor.set_image(image)
         return image
 
@@ -70,7 +65,7 @@ class SAMSegmentor:
 
     def segment_with_box_and_points(self, box, points=None, labels=None, multimask=True):
 
-        box_np = np.array([box])  # SAM 需要 batch 形式
+        box_np = np.array([box]) 
 
         kwargs = {
             "box": box_np,
@@ -135,7 +130,6 @@ class SAMSegmentor:
         saved_paths = []
 
         for i, mask in enumerate(masks):
-            # 1) 把 mask 拉回到原图尺寸（原图大小 stored in self.original_image）
             h, w = self.original_image.shape[:2]
             resized_mask = cv2.resize(
                 mask.astype(np.uint8),
@@ -144,12 +138,11 @@ class SAMSegmentor:
             )
             alpha = (resized_mask * 255).astype(np.uint8)
 
-        # 2) 保存灰度掩膜（0/255）
+
             mask_path = os.path.join(base_path, f"{prefix}_{i}_mask.png")
             cv2.imwrite(mask_path, alpha)
             saved_paths.append(mask_path)
 
-        # 3) 保存可视化版：原图 + 前景 α 通道
             rgba = np.dstack((self.original_image, alpha))
             rgba_path = os.path.join(base_path, f"{prefix}_{i}.png")
             os.makedirs(os.path.dirname(rgba_path), exist_ok=True)
